@@ -1,0 +1,98 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-auth.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyCgr-Fyo4J9BYK6rYwR7-QuUBZwxEt_95I",
+        authDomain: "phone-auth-4fbd1.firebaseapp.com",
+        databaseURL: "https://phone-auth-4fbd1.firebaseio.com",
+        projectId: "phone-auth-4fbd1",
+        storageBucket: "phone-auth-4fbd1.appspot.com",
+        messagingSenderId: "550331571743",
+        appId: "1:550331571743:web:cb77775abdea7b79c27f2a",
+        measurementId: "G-WQD7DF7NYK",
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="text" id="p" />
+
+    <div id="r"></div>
+
+    <button onClick="SendCode()">Send</button>
+    <div>
+      <input type="text" id="code" placeholder="code" />
+      <button onClick="Code()">Submit Code</button>
+    </div>
+    <script>
+      firebase.auth().languageCode = "en";
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("r", {
+        size: "normal",
+        callback: function (response) {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // ...
+        },
+        "expired-callback": function () {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          // ...
+        },
+      });
+
+      var appVerifier = window.recaptchaVerifier;
+      recaptchaVerifier.render();
+      function SendCode() {
+        var phoneNumber = document.getElementById("p").value;
+        console.log(phoneNumber);
+        firebase
+          .auth()
+          .signInWithPhoneNumber(phoneNumber, appVerifier)
+          .then(function (confirmationResult) {
+            console.log("success");
+            // SMS sent. Prompt user to type the code from the message, then sign the
+            // user in with confirmationResult.confirm(code).
+            window.confirmationResult = confirmationResult;
+          })
+          .catch(function (error) {
+            console.log(error);
+            // Error; SMS not sent
+            // ...
+          });
+      }
+      async function Code() {
+        const code = document.getElementById("code").value;
+        // confirmationResult
+        //   .confirm(code)
+        //   .then(function (result) {
+        //     // User signed in successfully.
+        //     var user = result.user;
+        //     console.log("user Signed in ", result);
+        //   })
+        //   .catch(function (error) {
+        //     // User couldn't sign in (bad verification code?)
+        //     // ...
+        //   });
+        var credential = await firebase.auth.PhoneAuthProvider.credential(
+          confirmationResult.verificationId,
+          code
+        );
+        firebase
+          .auth()
+          .signInWithCredential(credential)
+          .then((user) => {
+            console.log(user);
+          });
+      }
+      ("");
+    </script>
+  </body>
+</html>
